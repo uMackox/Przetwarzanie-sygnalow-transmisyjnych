@@ -1,7 +1,7 @@
 import soundfile as sf
 import numpy as np
 import matplotlib.pyplot as plt
-
+import DMTF as dmtf
 def Get_XY(data):
     minput = np.array(data)
     print(np.size(minput))
@@ -29,25 +29,44 @@ def WAV_Plot(x,y):
 def WidmoAmp(x,samplerate):
     xf = np.fft.fft(x)
     samplelim = samplerate/2
-    
+    out = []
+    outdb = []
+    f = []
+    for i in range(0,len(x)-1):
+        fk = i*(samplerate/len(x))
+        if fk>samplerate/4:
+            break
+        f.append(fk)
+        a = xf[i].real
+        b = xf[i].imag
+        out.append((a*a)+(b*b))
+        outdb.append(10*(np.log(out[i])/np.log(10)))
+        out[i] = out[i]*(2/len(x))
+    plt.plot(f,out)
+    plt.ylabel("Amplitude")
+    plt.xlabel("Frequency")
+    plt.show()
 
 # Odczyt pliku wav
 data, samplerate = sf.read('ATrain.wav')
 x,y = Get_XY(data);
 
 # DFT
-data2 = ComposeData(x,y)
-xf = np.fft.fft(x)
-print(xf)
-plt.plot(data2)
-plt.show()
+WidmoAmp(x,samplerate)
 
 # Analiza
-
+str = "maciej.kukulka"
+tmp = dmtf.T9Convert(str)
+print(tmp)
+ox, oy = dmtf.DMTFconv(tmp, 0.1, 44100)
+plt.plot(ox, oy)
+plt.ylabel("Amp")
+plt.xlabel("Time")
+plt.show()
+WidmoAmp(oy,44100)
 # DFT
-
+WidmoAmp(x,samplerate)
+data2 = ComposeData(x,y)
 # Zapis pliku wav
 
 sf.write('new.wav', data2, samplerate)
-
-

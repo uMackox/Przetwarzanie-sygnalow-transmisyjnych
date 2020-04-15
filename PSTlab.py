@@ -2,6 +2,19 @@ import soundfile as sf
 import numpy as np
 import matplotlib.pyplot as plt
 import DMTF as dmtf
+
+def Divide_Data(data,Tr,samplerate):
+    minput = np.array(data)
+    size = int(np.size(minput)/2)
+    out = []
+    for i in range(0, int(size/(Tr*samplerate))):
+        print("here")
+        tmp = []
+        for j in range(0, int(Tr*samplerate)):
+            tmp.append(data[i* int(Tr*samplerate) + j])
+        out.append(tmp);
+    return out
+
 def Get_XY(data):
     minput = np.array(data)
     print(np.size(minput))
@@ -64,9 +77,16 @@ plt.ylabel("Amp")
 plt.xlabel("Time")
 plt.show()
 WidmoAmp(oy,44100)
+
+ramki = Divide_Data(x,0.1,44100)
+
+print("out here")
+print(ramki)
+
+
 # DFT
 WidmoAmp(x,samplerate)
 data2 = ComposeData(x,y)
 # Zapis pliku wav
 
-sf.write('new.wav', data2, samplerate)
+sf.write('new.wav', oy, samplerate)

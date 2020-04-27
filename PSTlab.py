@@ -2,20 +2,31 @@ import soundfile as sf
 import numpy as np
 import matplotlib.pyplot as plt
 import DMTF as dmtf
-import Spectro as spec
 from scipy import signal
 from scipy.fft import fftshift
 
+def Divide_Data(data,Tr,samplerate):
+    minput = np.array(data)
+    size = int(np.size(minput))
+    out = []
+    for i in range(0, int(size/(Tr*samplerate))):
+        tmp = []
+        for j in range(0, int(Tr*samplerate)):
+            tmp.append(data[i* int(Tr*samplerate) + j])
+        out.append(tmp)
 
-def WhiteNoiseGen(samples):
-    mean = 0;
-    std = 0.1;
-    num_samples = samples
-    out = np.random.normal(mean,std,size=num_samples)
     return out
 
-def AddNoise(sig,noise):
-    out = sig + noise
+def GetNoise(fname):
+    data, samplerate = sf.read(fname)
+    out = data
+    print(len(data))
+    return out
+
+def AddNoise(sig,noise,samplerate):
+    out = sig
+    for i in range(0,len(sig)):
+        out[i] = sig[i] + noise[i%samplerate];
     return out
 
 
@@ -74,6 +85,9 @@ WidmoAmp(x,samplerate)
 plt.show()
 
 # Analiza
+
+
+
 str = "maciej.kukulkaaa"
 tmp = dmtf.T9Convert(str)
 print(tmp)
@@ -86,8 +100,24 @@ plt.show()
 WidmoAmp(oy,44100)
 plt.show()
 
-wn = WhiteNoiseGen(740880)
-an = AddNoise(oy,wn)
+
+
+# Liczenie spektrogramu DTMF
+my = np.array(oy)
+f,t,Sxx = signal.spectrogram(my,44100)
+plt.pcolormesh(t,f,Sxx)
+plt.xlabel('Time [Sec]')
+plt.ylabel('Frequency [Hz]')
+plt.savefig('Spect.png')
+plt.show()
+
+# podział na ramki
+ramki = Divide_Data(x,0.1,44100)
+print(np.size(ramki))
+#print(ramki)
+# Dodawnia szumu
+pink = GetNoise('pinkn.wav');
+an = AddNoise(oy,pink,44100)
 
 plt.plot(ox, an)
 plt.ylabel("Amp")
@@ -97,18 +127,28 @@ plt.show()
 WidmoAmp(an,44100)
 plt.show()
 
-f,t,Sxx = signal.spectrogram(an,44100)
-plt.pcolormesh(t,f,Sxx)
-plt.xlabel('Time [Sec]')
-plt.ylabel('Frequency [Hz]')
-plt.savefig('Spect.png')
+
+pink = GetNoise('whiten.wav');
+an = AddNoise(oy,pink,44100)
+
+plt.plot(ox, an)
+plt.ylabel("Amp")
+plt.xlabel("Time")
 plt.show()
 
-ramki = spec.Divide_Data(x,0.1,44100)
-print(np.size(ramki))
-#print(ramki)
+WidmoAmp(an,44100)
+plt.show()
 
+brown = GetNoise('brown.wav');
+an = AddNoise(oy,brown,44100)
 
+plt.plot(ox, an)
+plt.ylabel("Amp")
+plt.xlabel("Time")
+plt.show()
+
+WidmoAmp(an,44100)
+plt.show()
 
 # DFT
 

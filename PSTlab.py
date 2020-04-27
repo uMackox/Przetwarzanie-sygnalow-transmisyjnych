@@ -2,18 +2,23 @@ import soundfile as sf
 import numpy as np
 import matplotlib.pyplot as plt
 import DMTF as dmtf
+import Spectro as spec
+from scipy import signal
+from scipy.fft import fftshift
 
-def Divide_Data(data,Tr,samplerate):
-    minput = np.array(data)
-    size = int(np.size(minput)/2)
-    out = []
-    for i in range(0, int(size/(Tr*samplerate))):
-        print("here")
-        tmp = []
-        for j in range(0, int(Tr*samplerate)):
-            tmp.append(data[i* int(Tr*samplerate) + j])
-        out.append(tmp);
+
+def WhiteNoiseGen(samples):
+    mean = 0;
+    std = 0.1;
+    num_samples = samples
+    out = np.random.normal(mean,std,size=num_samples)
     return out
+
+def AddNoise(sig,noise):
+    out = sig + noise
+    return out
+
+
 
 def Get_XY(data):
     minput = np.array(data)
@@ -58,7 +63,7 @@ def WidmoAmp(x,samplerate):
     plt.plot(f,out)
     plt.ylabel("Amplitude")
     plt.xlabel("Frequency")
-    plt.show()
+
 
 # Odczyt pliku wav
 data, samplerate = sf.read('ATrain.wav')
@@ -66,9 +71,10 @@ x,y = Get_XY(data);
 
 # DFT
 WidmoAmp(x,samplerate)
+plt.show()
 
 # Analiza
-str = "maciej.kukulka"
+str = "maciej.kukulkaaa"
 tmp = dmtf.T9Convert(str)
 print(tmp)
 ox, oy = dmtf.DMTFconv(tmp, 0.1, 44100)
@@ -76,17 +82,41 @@ plt.plot(ox, oy)
 plt.ylabel("Amp")
 plt.xlabel("Time")
 plt.show()
+
 WidmoAmp(oy,44100)
+plt.show()
 
-ramki = Divide_Data(x,0.1,44100)
+wn = WhiteNoiseGen(740880)
+an = AddNoise(oy,wn)
 
-print("out here")
-print(ramki)
+plt.plot(ox, an)
+plt.ylabel("Amp")
+plt.xlabel("Time")
+plt.show()
+
+WidmoAmp(an,44100)
+plt.show()
+
+f,t,Sxx = signal.spectrogram(an,44100)
+plt.pcolormesh(t,f,Sxx)
+plt.xlabel('Time [Sec]')
+plt.ylabel('Frequency [Hz]')
+plt.savefig('Spect.png')
+plt.show()
+
+ramki = spec.Divide_Data(x,0.1,44100)
+print(np.size(ramki))
+#print(ramki)
+
 
 
 # DFT
+
 WidmoAmp(x,samplerate)
+plt.show()
 data2 = ComposeData(x,y)
 # Zapis pliku wav
 
-sf.write('new.wav', oy, samplerate)
+
+
+sf.write('new.wav', an, samplerate)

@@ -2,6 +2,7 @@ import soundfile as sf
 import numpy as np
 import matplotlib.pyplot as plt
 import DMTF as dmtf
+import Filters as fltr
 from scipy import signal
 from scipy.fft import fftshift
 
@@ -84,6 +85,8 @@ x,y = Get_XY(data);
 WidmoAmp(x,samplerate)
 plt.show()
 
+
+
 # Analiza
 
 
@@ -119,36 +122,67 @@ print(np.size(ramki))
 pink = GetNoise('pinkn.wav');
 an = AddNoise(oy,pink,44100)
 
-plt.plot(ox, an)
-plt.ylabel("Amp")
-plt.xlabel("Time")
-plt.show()
-
-WidmoAmp(an,44100)
-plt.show()
-
-
-pink = GetNoise('whiten.wav');
-an = AddNoise(oy,pink,44100)
 
 plt.plot(ox, an)
 plt.ylabel("Amp")
 plt.xlabel("Time")
+plt.title("DMTF + pink noise")
 plt.show()
-
 WidmoAmp(an,44100)
 plt.show()
 
-brown = GetNoise('brown.wav');
-an = AddNoise(oy,brown,44100)
 
-plt.plot(ox, an)
+# IIR BP
+
+flt = fltr.FilterIIRbp(oy,650,1537,samplerate)
+plt.plot(ox, flt)
 plt.ylabel("Amp")
 plt.xlabel("Time")
+plt.title("Bandpass IIR filter")
+plt.show()
+WidmoAmp(flt,44100)
+plt.title("Bandpass IIR filter")
 plt.show()
 
-WidmoAmp(an,44100)
+# IIR BS
+
+flt = fltr.FilterIIRbs(oy,650,1537,samplerate)
+plt.plot(ox, flt)
+plt.ylabel("Amp")
+plt.xlabel("Time")
+plt.title("Bandstop IIR filter")
 plt.show()
+WidmoAmp(flt,44100)
+plt.title("Bandstop IIR filter")
+plt.show()
+# FIR BP
+
+flt = fltr.FilterFIRbp(oy,650,1537,samplerate)
+plt.plot(ox, flt)
+plt.ylabel("Amp")
+plt.xlabel("Time")
+plt.title("Bandpass FIR filter")
+plt.show()
+WidmoAmp(flt,44100)
+plt.title("Bandpass FIR filter")
+plt.show()
+# FIR BS
+
+flt = fltr.FilterFIRbs(oy,650,1537,samplerate)
+plt.plot(ox, flt)
+plt.ylabel("Amp")
+plt.xlabel("Time")
+plt.title("Bandstop FIR filter")
+plt.show()
+WidmoAmp(flt,44100)
+plt.title("Bandstop FIR filter")
+plt.show()
+
+
+
+
+
+
 
 # DFT
 

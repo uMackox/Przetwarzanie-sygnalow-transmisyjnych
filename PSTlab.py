@@ -21,24 +21,24 @@ def Divide_Data(data,Tr,samplerate):
 def GetNoise(fname):
     data, samplerate = sf.read(fname)
     out = data
-    print(len(data))
+    #print(len(data))
     return out
 
-def AddNoise(sig,noise,samplerate):
+def AddNoise(sig,noise,samplerate,alpha):
     out = sig
     for i in range(0,len(sig)):
-        out[i] = sig[i] + noise[i%samplerate];
+        out[i] = sig[i]*alpha + (noise[i%samplerate]*(1-alpha));
     return out
 
 
 
 def Get_XY(data):
     minput = np.array(data)
-    print(np.size(minput))
+    #print(np.size(minput))
     mx = []
     my = []
     size = int(np.size(minput)/2)
-
+    #print(size)
     for i in range(0, size-1):
         mx.append(minput[i][0])
         my.append(minput[i][1])
@@ -77,8 +77,20 @@ def WidmoAmp(x,samplerate):
     plt.xlabel("Frequency")
 
 
+
+# Generowanie sygnału DMTF
+str = "maciej"
+print(str)
+tmp = dmtf.T9Convert(str)
+print(tmp)
+ox, oy = dmtf.DMTFconv(tmp, 0.1, 44100)
+data = ComposeData(oy,oy)
+sf.write('dmtf.wav',data, 44100)
+
+
+
 # Odczyt pliku wav
-data, samplerate = sf.read('ATrain.wav')
+data, samplerate = sf.read('dmtf.wav')
 x,y = Get_XY(data);
 
 # DFT
@@ -90,44 +102,32 @@ plt.show()
 # Analiza
 
 
-
-str = "maciej.kukulkaaa"
-tmp = dmtf.T9Convert(str)
-print(tmp)
-ox, oy = dmtf.DMTFconv(tmp, 0.1, 44100)
-plt.plot(ox, oy)
-plt.ylabel("Amp")
-plt.xlabel("Time")
-plt.show()
-
-WidmoAmp(oy,44100)
-plt.show()
-
-
-
 # Liczenie spektrogramu DTMF
 my = np.array(oy)
 f,t,Sxx = signal.spectrogram(my,44100)
 plt.pcolormesh(t,f,Sxx)
 plt.xlabel('Time [Sec]')
 plt.ylabel('Frequency [Hz]')
+plt.title('Spektrogram sygnału')
 plt.savefig('Spect.png')
 plt.show()
 
+
 # podział na ramki
-ramki = Divide_Data(x,0.1,44100)
-print(np.size(ramki))
+#ramki = Divide_Data(x,0.1,44100)
+#print(np.size(ramki))
 #print(ramki)
+
 # Dodawnia szumu
-pink = GetNoise('pinkn.wav');
-an = AddNoise(oy,pink,44100)
-
-
+pink = GetNoise('./noises/pinkn.wav');
+an = AddNoise(oy,pink,44100,0.85)
+plt.figure()
+plt.subplot(1,2,1)
 plt.plot(ox, an)
 plt.ylabel("Amp")
 plt.xlabel("Time")
-plt.title("DMTF + pink noise")
-plt.show()
+plt.title("Sygnal + pink noise")
+plt.subplot(1,2,2)
 WidmoAmp(an,44100)
 plt.show()
 
@@ -135,50 +135,64 @@ plt.show()
 # IIR BP
 
 flt = fltr.FilterIIRbp(oy,650,1537,samplerate)
+
+plt.figure()
+plt.subplot(1,2,1)
 plt.plot(ox, flt)
 plt.ylabel("Amp")
 plt.xlabel("Time")
 plt.title("Bandpass IIR filter")
-plt.show()
+plt.subplot(1,2,2)
 WidmoAmp(flt,44100)
 plt.title("Bandpass IIR filter")
 plt.show()
+
+decode = dmtf.DMTFdecode(flt,44100)
+print(decode)
+strrec = dmtf.T9Decode(decode)
+print(strrec)
 
 # IIR BS
 
 flt = fltr.FilterIIRbs(oy,650,1537,samplerate)
+plt.figure()
+plt.subplot(1,2,1)
 plt.plot(ox, flt)
 plt.ylabel("Amp")
 plt.xlabel("Time")
 plt.title("Bandstop IIR filter")
-plt.show()
+plt.subplot(1,2,2)
 WidmoAmp(flt,44100)
 plt.title("Bandstop IIR filter")
 plt.show()
-# FIR BP
 
-flt = fltr.FilterFIRbp(oy,650,1537,samplerate)
-plt.plot(ox, flt)
-plt.ylabel("Amp")
-plt.xlabel("Time")
-plt.title("Bandpass FIR filter")
-plt.show()
-WidmoAmp(flt,44100)
-plt.title("Bandpass FIR filter")
-plt.show()
 # FIR BS
 
 flt = fltr.FilterFIRbs(oy,650,1537,samplerate)
+plt.figure()
+plt.subplot(1,2,1)
 plt.plot(ox, flt)
 plt.ylabel("Amp")
 plt.xlabel("Time")
 plt.title("Bandstop FIR filter")
-plt.show()
+plt.subplot(1,2,2)
 WidmoAmp(flt,44100)
 plt.title("Bandstop FIR filter")
 plt.show()
 
+# FIR BP
 
+flt = fltr.FilterFIRbp(oy,650,1537,samplerate)
+plt.figure()
+plt.subplot(1,2,1)
+plt.plot(ox, flt)
+plt.ylabel("Amp")
+plt.xlabel("Time")
+plt.title("Bandpass FIR filter")
+plt.subplot(1,2,2)
+WidmoAmp(flt,44100)
+plt.title("Bandpass FIR filter")
+plt.show()
 
 
 
@@ -193,4 +207,4 @@ data2 = ComposeData(x,y)
 
 
 
-sf.write('new.wav', an, samplerate)
+sf.write('new.wav', flt, samplerate)

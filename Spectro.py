@@ -8,17 +8,6 @@ def Unite(input):
             mout.append(input[i][j])
     return mout
 
-def Divide_Data(data,Tr,samplerate):
-    minput = np.array(data)
-    size = int(np.size(minput))
-    out = []
-    for i in range(0, int(size/(Tr*samplerate))):
-        tmp = []
-        for j in range(0, int(Tr*samplerate)):
-            tmp.append(data[i* int(Tr*samplerate) + j])
-        out.append(tmp)
-
-    return out
 
 
 def Spect(data,samplerate):

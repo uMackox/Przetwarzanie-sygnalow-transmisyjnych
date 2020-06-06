@@ -2,6 +2,7 @@ import soundfile as sf
 import numpy as np
 import matplotlib.pyplot as plt
 import DMTF as dmtf
+import DeltaCode as dc
 import Filters as fltr
 from scipy import signal
 from scipy.fft import fftshift
@@ -195,16 +196,23 @@ plt.title("Bandpass FIR filter")
 plt.show()
 
 
-
-
-
-# DFT
-
 WidmoAmp(x,samplerate)
 plt.show()
 data2 = ComposeData(x,y)
 # Zapis pliku wav
 
+
+plt.subplot(2,1,1)
+plt.plot(ox,flt)
+# Kodowanie delta
+t,e,y = dc.Delta_code(flt,samplerate,500)
+dc.Save_Delta('delta.txt',500,e,y[0],samplerate)
+y0,delta,samplerate,e = dc.Read_delta('delta.txt')
+t,y = dc.Delta_From_File(y0,delta,samplerate,e)
+
+plt.subplot(2,1,2)
+plt.plot(t,y)
+plt.show()
 
 
 sf.write('new.wav', flt, samplerate)
